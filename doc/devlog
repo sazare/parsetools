@@ -1,0 +1,77 @@
+
+juliaのソースをparseして、関数やstructの関係を解析するツールを作ってみたいなと思ったわけですが、ファイルの中身をstringにしてMeta.parse()の引数に渡してもエラーになるばかり。
+
+Manualを読むと、Meta.parse()には第二引数があって、そこを始点としてparseをしてくれるらしい。
+
+ということで、ファイルの中身を文字列として次のファイルに渡すと、parseできる単位(関数とかstruct)でparseしたものをExprのArray{Any,1}としてくれる関数を作ってみた。
+
+```julia
+function parsestr(str)
+ ix=1
+ ps=[]
+ while true
+   (pp, ni) = Meta.parse(str,ix)
+   if pp==nothing; break end
+   push!(ps, pp)
+   ix=ni
+ end
+ return ps
+end
+```
+
+Expr以外にもstringが収穫されることもある
+他にもあるのかも
+
+となると、method dispatchについて確認が必要なので
+
+juliaのmethod dispatchで、どの型とも一致しなかった場合の処理を、型Anyで書けばうまくいくのかどうか確認した。
+とりあえず、3つ型を定義する。
+
+```julia
+struct A
+ x::String
+end
+
+struct B
+ y::Number
+end
+
+struct C
+ z::Symbol
+end
+
+```
+
+methodの定義をこうする。
+引数がAでもBでもないとき、Anyの定義だけが使われれば吉。
+classの継承だと、親のmethodが呼ばれたりするので、それに似た振る舞いだと、AやBのときもAnyの定義が使われてしまわないことを確認したい。
+
+```julia
+f(x::A) = "with A"
+f(x::Any) = "with others"
+f(x::B) = "with B"
+```
+Bの定義を最後にもってきたのは、定義の順番が関係しないか気になったので。
+
+最後に、期待値を@testで書くとこんな感じ。
+わたしの常識では、こうなっているはず。
+
+```julia
+using Test
+
+@test f(A("i am A")) == "with A"
+@test f(C(:others)) == "with others"
+@test f(124) == "with others"
+@test f(B(123)) == "with B"
+```
+
+実行すると、こうなったのでめでたし。
+
+```julia
+julia> include("methods.jl")
+Test Passed
+```
+
+
+
+
