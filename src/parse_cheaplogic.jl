@@ -22,11 +22,18 @@ files = ["config.jl",
 "parser.jl"
 ]
 
-clexps=parsefiles(files)
-println("clexps")
+@show :parsefiles
+@time clexps =parsefiles(files)
+@show :parsefilesf
+@time clexpsf=parsefilesf(files)
+
 
 cd(here)
 
+#showexprs(clexps)
+#showexprs(clexpsf)
+
+#==
 for i in 1:313
   if clexps[i] isa Expr
     println("$i:$(clexps[i].head)")
@@ -34,4 +41,5 @@ for i in 1:313
     println("$i type is $(typeof(clexps[i])) // clexps[i])")
   end
 end
+==#
 

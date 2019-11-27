@@ -1,0 +1,246 @@
+
+
+julia> pf=parsefile("parsefile.jl")
+3-element Array{Any,1}:
+:(function readfile(fname)
+     #= none:3 =#
+     open(fname) do f
+         #= none:4 =#
+         read(f, String)
+     end
+ end)                                                                                                                                                                                                        
+:(function parsestr(str)
+     #= none:3 =#
+     ix = 1
+     #= none:4 =#
+     ps = []
+     #= none:5 =#
+     while true
+         #= none:6 =#
+         (pp, ni) = Meta.parse(str, ix)
+         #= none:7 =#
+         if pp == nothing
+             #= none:7 =#
+             break
+         end
+         #= none:8 =#
+         push!(ps, pp)
+         #= none:9 =#
+         ix = ni
+     end
+     #= none:11 =#
+     return ps
+ end)
+:(function parsefile(fname)
+     #= none:3 =#
+     fs = readfile(fname)
+     #= none:4 =#
+     return parsestr(fs)
+ end)                                                                                                                                                                                                        
+
+julia> pf[2]
+:(function parsestr(str)
+     #= none:3 =#
+     ix = 1
+     #= none:4 =#
+     ps = []
+     #= none:5 =#
+     while true
+         #= none:6 =#
+         (pp, ni) = Meta.parse(str, ix)
+         #= none:7 =#
+         if pp == nothing
+             #= none:7 =#
+             break
+         end
+         #= none:8 =#
+         push!(ps, pp)
+         #= none:9 =#
+         ix = ni
+     end
+     #= none:11 =#
+     return ps
+ end)
+
+julia> pf[1]
+:(function readfile(fname)
+     #= none:3 =#
+     open(fname) do f
+         #= none:4 =#
+         read(f, String)
+     end
+ end)
+
+julia> pf[3]
+:(function parsefile(fname)
+     #= none:3 =#
+     fs = readfile(fname)
+     #= none:4 =#
+     return parsestr(fs)
+ end)
+
+julia> dump(pf[3])
+Expr
+ head: Symbol function
+ args: Array{Any}((2,))
+   1: Expr
+     head: Symbol call
+     args: Array{Any}((2,))
+       1: Symbol parsefile
+       2: Symbol fname
+   2: Expr
+     head: Symbol block
+     args: Array{Any}((4,))
+       1: LineNumberNode
+         line: Int64 3
+         file: Symbol none
+       2: Expr
+         head: Symbol =
+         args: Array{Any}((2,))
+           1: Symbol fs
+           2: Expr
+             head: Symbol call
+             args: Array{Any}((2,))
+               1: Symbol readfile
+               2: Symbol fname
+       3: LineNumberNode
+         line: Int64 4
+         file: Symbol none
+       4: Expr
+         head: Symbol return
+         args: Array{Any}((1,))
+           1: Expr
+             head: Symbol call
+             args: Array{Any}((2,))
+               1: Symbol parsestr
+               2: Symbol fs
+
+julia> fff=pf[3]
+:(function parsefile(fname)
+     #= none:3 =#
+     fs = readfile(fname)
+     #= none:4 =#
+     return parsestr(fs)
+ end)
+
+julia> fff.head
+:function
+
+julia> fff.args
+2-element Array{Any,1}:
+:(parsefile(fname))
+quote
+   #= none:3 =#
+   fs = readfile(fname)
+   #= none:4 =#
+   return parsestr(fs)
+end
+
+julia> fff.args[1]
+:(parsefile(fname))
+
+julia> fff.args[1].head
+:call
+
+julia> fff.args[1].args
+2-element Array{Any,1}:
+:parsefile
+:fname
+
+julia> fff.args[2]
+quote
+   #= none:3 =#
+   fs = readfile(fname)
+   #= none:4 =#
+   return parsestr(fs)
+end
+
+julia> fff.args[2].head
+:block
+
+julia> fff.args[2].args
+4-element Array{Any,1}:
+:(#= none:3 =#)
+:(fs = readfile(fname))
+:(#= none:4 =#)
+:(return parsestr(fs))
+
+julia> fff.args[2].args[1]
+:(#= none:3 =#)
+
+julia> fff.args[2].args[1]
+:(#= none:3 =#)
+
+julia> dump(fff.args[2].args[1])
+LineNumberNode
+ line: Int64 3
+ file: Symbol none
+
+julia> typeof(fff.args[2].args[1])
+LineNumberNode
+
+julia> typeof(fff.args[2].args[2])
+Expr
+
+julia> dump(fff.args[2].head)
+Symbol block
+
+julia> fff.args[2]
+quote
+   #= none:3 =#
+   fs = readfile(fname)
+   #= none:4 =#
+   return parsestr(fs)
+end
+
+julia> fff.args[2].head
+:block
+
+julia> fff.args[2].args[1]
+:(#= none:3 =#)
+
+julia> fff.args[2].args[2]
+:(fs = readfile(fname))
+
+julia> typeof(fff.args[2].args[2])
+Expr
+
+julia> typeof(fff.args[2].args[1])
+LineNumberNode
+
+julia> typeof(fff.args[2].args[3])
+LineNumberNode
+
+julia> fff.args[2].args[2]
+:(fs = readfile(fname))
+
+julia> fff.args[2].args[2].head
+:(=)
+
+julia> fff.args[2].args[2].head == :(=)
+true
+
+julia> typeof(fff.args[2].args[2].head)
+Symbol
+
+julia> fff.args[2].args[2].args
+2-element Array{Any,1}:
+:fs
+:(readfile(fname))
+
+julia> fff.args[2].args[2].args[1]
+:fs
+
+julia> fff.args[2].args[2].args[2]
+:(readfile(fname))
+
+julia> typeof(fff.args[2].args[2].args[2])
+Expr
+
+julia> fff.args[2].args[2].args[2].head
+:call
+
+julia> fff.args[2].args[2].args[2].args
+2-element Array{Any,1}:
+:readfile
+:fname

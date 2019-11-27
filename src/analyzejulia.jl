@@ -5,6 +5,4 @@
 
 
 
-/Users/shin/Projects/github/cheaplogic/Prover
-
 

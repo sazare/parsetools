@@ -24,12 +24,26 @@ end
 
 ss=parsefile("parsetool.jl")
 
-function parsefiles(fns)
+function parsefilesf(fns)
   fs = []
-
   for afn in fns
     append!(fs, parsefile(afn))
   end
   return fs
 end
+
+function parsefiles(fns)
+  map(x->parsefile(x), fns)
+end
+
+function showexprs(es)
+  for i in 1:length(es)
+    if clexps[i] isa Expr
+      println("$i:$(clexps[i].head)")
+    else
+      println("$i type is $(typeof(clexps[i])) // clexps[i])")
+    end
+  end
+end
+
 
