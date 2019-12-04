@@ -46,4 +46,35 @@ function showexprs(es)
   end
 end
 
+#####
+# finding caller
+function findcallerinargs(args)
+  callee = []
+  for arg in args
+    if arg isa Expr
+@show arg
+      append!(callee,findcallerinexpr(arg))
+    end
+  end
+  return callee
+end
+
+
+function findcallerinexpr(expr)
+  if expr isa Symbol
+    return 
+  end
+  callee=[]
+  if expr.head == :function
+    caller=expr.args[1]
+println("caller=$caller")
+  elseif expr.head == :call
+    append!(callee, findcallerinargs(expr.args[2:end]))
+  elseif expr.head == :block
+    append!(callee,findcallerinargs(expr.args[2:end]))
+  else
+    append!(callee, findcallerinargs(expr.args))
+  end
+  return callee
+end
 
