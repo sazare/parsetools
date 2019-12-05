@@ -36,19 +36,13 @@ function parsefiles(fns)
   map(x->parsefile(x), fns)
 end
 
-function showexprs(es)
-  for i in 1:length(es)
-    if clexps[i] isa Expr
-      println("$i:$(clexps[i].head)")
-    else
-      println("$i type is $(typeof(clexps[i])) // clexps[i])")
-    end
-  end
+function showtypes(es)
+  map(x->(x isa Expr && x.head),sa)
 end
 
 #####
-# finding caller
-function findcallerinargs(args)
+# finding callee
+function findcallee(args::Array)
   callee = []
   for arg in args
     if arg isa Expr
@@ -60,21 +54,25 @@ function findcallerinargs(args)
 end
 
 
-function findcallerinexpr(expr)
-  if expr isa Symbol
-    return 
+#####
+# finding caller
+
+function findcaller(ea::Array)
+  callers=[]
+  for e in ea
+    append!(callers,findcaller(e))
   end
-  callee=[]
+  return callers
+end
+
+function findcaller(expr::Expr)
+@show expr
   if expr.head == :function
-    caller=expr.args[1]
-println("caller=$caller")
+    return [expr.args[1]]
   elseif expr.head == :call
-    append!(callee, findcallerinargs(expr.args[2:end]))
-  elseif expr.head == :block
-    append!(callee,findcallerinargs(expr.args[2:end]))
-  else
-    append!(callee, findcallerinargs(expr.args))
+    return [expr.args[1]]
+  elseif expr.head == :(=)
+    return findcaller(expr.args[1])
   end
-  return callee
 end
 
