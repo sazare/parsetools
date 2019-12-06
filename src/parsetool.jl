@@ -37,7 +37,7 @@ function parsefiles(fns)
 end
 
 function showtypes(es)
-  map(x->(x isa Expr && x.head),sa)
+  map(x->(x isa Expr && x.head),es)
 end
 
 #####
@@ -46,7 +46,6 @@ function findcallee(args::Array)
   callee = []
   for arg in args
     if arg isa Expr
-@show arg
       append!(callee,findcallerinexpr(arg))
     end
   end
@@ -59,20 +58,23 @@ end
 
 function findcaller(ea::Array)
   callers=[]
-  for e in ea
-    append!(callers,findcaller(e))
-  end
+  map(e->append!(callers,findcaller(e)),ea)
   return callers
 end
 
+function findcaller(sym::Symbol)
+  return []
+end
+
 function findcaller(expr::Expr)
-@show expr
   if expr.head == :function
     return [expr.args[1]]
   elseif expr.head == :call
     return [expr.args[1]]
   elseif expr.head == :(=)
-    return findcaller(expr.args[1])
+    return [expr.args[1]]
+  else
+    return []
   end
 end
 
