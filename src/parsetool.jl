@@ -69,12 +69,24 @@ end
 """
 finding function definitions from Array of something
 """
+macro arrayfunc(name)
+  :(function $name(ae::Array)
+    somes = []
+    for e in ae
+      append!(somes, $name(e))
+    end
+    return somes
+  end)
+end
 
+@arrayfunc(findcaller)
+#==
 function findcaller(ae::Array)
   callers=[]
   map(e->append!(callers,findcaller(e)),ae)
   return callers
 end
+==#
 
 function findcaller(something::Union{Symbol,String,LineNumberNode})
   return []
@@ -161,6 +173,9 @@ end
 findcallee find callee in array of something
 """
 
+@arrayfunc(findcallee)
+
+#==
 function findcallee(ae::Array)
   callees=[]
   for e in ae
@@ -168,4 +183,5 @@ function findcallee(ae::Array)
   end
   return callees
 end
+==#
 
