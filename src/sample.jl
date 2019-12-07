@@ -1,4 +1,5 @@
 #sample.jl
+
 f1(x)=x+x
 
 begin
@@ -12,6 +13,10 @@ struct Mine
  a::String
  b::Int
 end
+
+"""
+sample f2 function
+"""
 
 function f2(x::Int)::Int
  if x==0; return 1 end
