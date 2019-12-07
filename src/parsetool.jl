@@ -1,13 +1,32 @@
 # tools for parse julia files
 
+### RESTRICTION 
+#==
+1. function definition in function definition. in this case
+   find just inside funtion name.
+2. f=g and g is a function. I don't follow g's def as f's def.
+3. i don't follow macro definition as this file.
+==#
+
 ### between document string and function should have a blank line
 ### or, the comment and 1st line in a single token
 
-global JULIANAMES=[:if, :for, :while, :global, :block, :&&, :||,
-:append!, :push!, :map, :isa, :println,
+global JULIANAMES=[:GlobalRef, :(Meta.parse),
+:if, :for, :while, :global, :block, :&&, :||,
+:append!, :push!, :map, :isa, :println,:in,
 :+, :-, :*, :/,
 :(=),:(==), :(!=), :(>=), :(<=), :(<), :(>)
 ]
+
+global PRIVATENAMES = []
+global IGNORENAMES=vcat(JULIANAMES, PRIVATENAMES)
+
+# GlobalRef in toplevel of a file
+# LineNumberNode in Meta.parse()
+# QuoteNode maybe in comment
+# Number in as x = 2. :(=)'s second but not Expr
+
+Otherwise = Union{Symbol,String,LineNumberNode,GlobalRef,QuoteNode,Number}
 
 #### 1. parse files
 
@@ -46,7 +65,6 @@ end
 """
 parsefiles parses julia files
 """
-
 function parsefiles(fns)
   map(x->parsefile(x), fns)
 end
@@ -55,7 +73,7 @@ end
 #pt=parsefile("parsetool.jl")
 
 
-### little tools
+### collect caller
 """
  showtypes shows toplevel type of Array of something"
 """
@@ -65,10 +83,12 @@ function showtypes(es)
 end
 
 
-#####
+##### collect callee
+
 """
 finding function definitions from Array of something
 """
+
 macro arrayfunc(name)
   :(function $name(ae::Array)
     somes = []
@@ -80,6 +100,7 @@ macro arrayfunc(name)
 end
 
 @arrayfunc(findcaller)
+
 #==
 function findcaller(ae::Array)
   callers=[]
@@ -88,7 +109,7 @@ function findcaller(ae::Array)
 end
 ==#
 
-function findcaller(something::Union{Symbol,String,LineNumberNode})
+function findcaller(something::Otherwise)
   return []
 end
 
@@ -109,13 +130,17 @@ function findcaller(expr::Expr)
   end
 end
 
-### callee
+### collect caller->callee
 """
 findcalee return a Array of called functions from a expr
 now, ignore macrocall
 """
 
 # finding callee
+
+@arrayfunc(findcalleetop)
+
+#==
 function findcalleetop(ae::Array)
   callees=[]
   for e in ae
@@ -124,21 +149,26 @@ function findcalleetop(ae::Array)
   end
   return callees
 end
+==#
 
-function findcalleetop(something::Union{Symbol,String,LineNumberNode})
+function findcalleetop(something::Otherwise)
   return []
 end
 
 function findcalleetop(expr::Expr)
-  caller = expr.args[1]
   if expr.head in [:function, :(=)]
+    caller = expr.args[1]
     callees = findcallee(expr.args[2])
     println("$caller => $callees")
     return [caller, callees] 
-  elseif expr.head == :call
+  elseif expr.head in [:call]
+    caller = expr.args[1]
     callees = findcallee(expr.args[2:end])
     println("$caller => $callees")
     return [caller, callees] 
+  elseif expr.head in [:macrocall]
+    callinf = findcalleetop(expr.args)
+    return callinf
   else
     return []
   end
@@ -153,6 +183,8 @@ function findcallee(expr::Expr)
   if expr.head in [:function, :call]
     push!(callees, expr.args[1])
     append!(callees, findcallee(expr.args[2:end]))
+  elseif expr.head in [:return]
+    append!(callees, findcallee(expr.args[1]))
   elseif expr.head == :(=)
     append!(callees, findcallee(expr.args[2]))
   elseif expr.head in JULIANAMES
@@ -165,7 +197,7 @@ end
 findcallee on otherwise
 """
 
-function findcallee(something::Union{Symbol,String,LineNumberNode,Number,QuoteNode})
+function findcallee(something::Otherwise)
   return []
 end
 
