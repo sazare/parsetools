@@ -4,7 +4,7 @@
  showtypes shows toplevel type of Array of something
 """
 function showtypes(es)
-  es
+  f1(es)
 end
 
 # This is bad
@@ -12,7 +12,7 @@ end
  this is bad
 """
 function unexpectedone(es)
-  es
+  f2(es)
 end
 
 ### see Meta.parse(thisfile) 

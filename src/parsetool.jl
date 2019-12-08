@@ -13,8 +13,8 @@
 
 global JULIANAMES=[:GlobalRef, :(Meta.parse),
 :if, :for, :while, :global, :block, :&&, :||,
-:append!, :push!, :map, :isa, :println,:in,
-:+, :-, :*, :/,
+:append!, :push!, :map, :isa, :println,:in,:all,
+:+, :-, :*, :/, :!,
 :(=),:(==), :(!=), :(>=), :(<=), :(<), :(>)
 ]
 
@@ -26,7 +26,7 @@ global IGNORENAMES=vcat(JULIANAMES, PRIVATENAMES)
 # QuoteNode maybe in comment
 # Number in as x = 2. :(=)'s second but not Expr
 
-Otherwise = Union{Symbol,String,LineNumberNode,GlobalRef,QuoteNode,Number}
+Otherwise = Union{Char,Symbol,String,LineNumberNode,GlobalRef,QuoteNode,Number}
 
 #### 1. parse files
 
@@ -169,6 +169,8 @@ function findcalleetop(expr::Expr)
   elseif expr.head in [:macrocall]
     callinf = findcalleetop(expr.args)
     return callinf
+  elseif expr.head in [:(.)]
+    return []
   else
     return []
   end
@@ -216,4 +218,29 @@ function findcallee(ae::Array)
   return callees
 end
 ==#
+
+### error fall function
+###### BUG: this function behaves unclear
+function findcallee(x)
+  []
+end
+
+### for multi julia files
+function fullparse(exprs)
+  for i in 1:length(exprs)
+    ex = exprs[i]
+    if ex isa Expr
+      print("$i:"); findcalleetop(ex)
+    else
+      println("$i type is $(typeof(ex)) ")
+    end
+  end
+end
+
+function packparsed(expss)
+  exps=[]
+  map(x->append!(exps, x), expss)
+  exps
+end
+
 
