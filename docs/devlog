@@ -1,3 +1,20 @@
+20191214(日)
+
+parsecaller()で、macroも識別するようにした。
+　return valueを([:f,;m], calltype)とした
+
+parsecallee()で、macroも識別するようにした。
+  こっちは:f, :mつけていない。
+
+   
+parsetool.jlをmoduleにするファイルを追加。
+includeでmacroになることを確認。
+
+
+sample.jlにmacro+docstringの例を追加した
+
+
+201911??のどこか 
 
 juliaのソースをparseして、関数やstructの関係を解析するツールを作ってみたいなと思ったわけですが、ファイルの中身をstringにしてMeta.parse()の引数に渡してもエラーになるばかり。
 
