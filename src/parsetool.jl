@@ -114,11 +114,15 @@ end
 # now i ignore both as not a function
 
 function findcaller(expr::Expr)
-  if expr.head in [:function, :call]
-    return [expr.args[1]]
+  if expr.head in [:macrocall]
+    return findcaller(expr.args)
+  elseif expr.head in [:macro]
+    return [(:m, expr.args[1])]
+  elseif expr.head in [:function, :call]
+    return [(:f, expr.args[1])]
   elseif expr.head == :(=)
     if expr.args[1] isa Expr
-      return [expr.args[1]]
+      return [(:f, expr.args[1])]
     end
   end
   return []

@@ -33,6 +33,11 @@ end
 
 f5(x) = f4(x)
 
+"macro document sample"
+macro hime(me)
+ return :(println("Hi, ", $me, "!!"))
+end
+
 macro sayhello(name)
  return :( println("Hello, ", $name, "!") )
 end
