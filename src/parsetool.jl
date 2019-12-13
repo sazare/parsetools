@@ -11,11 +11,12 @@
 ### between document string and function should have a blank line
 ### or, the comment and 1st line in a single token
 
-global JULIANAMES=[:GlobalRef, :(Meta.parse),
+global JULIANAMES=[:GlobalRef, :(Meta.parse), :(core.@doc), :macrocall,
 :if, :for, :while, :global, :block, :&&, :||,
 :append!, :push!, :map, :isa, :println,:in,:all,
+:length, :print, :println,
 :+, :-, :*, :/, :!,
-:(=),:(==), :(!=), :(>=), :(<=), :(<), :(>)
+:(=),:(==), :(!=), :(>=), :(<=), :(<), :(>), :(:)
 ]
 
 global PRIVATENAMES = []
@@ -77,7 +78,6 @@ end
 """
  showtypes shows toplevel type of Array of something"
 """
-
 function showtypes(es)
   map(x->(x isa Expr && x.head),es)
 end
@@ -88,7 +88,6 @@ end
 """
 finding function definitions from Array of something
 """
-
 macro arrayfunc(name)
   :(function $name(ae::Array)
     somes = []
@@ -178,7 +177,6 @@ end
 """
 findcallee find callee in rhs
 """
-
 function findcallee(expr::Expr)
   callees = []
   if expr.head in [:function, :call]
@@ -197,7 +195,6 @@ end
 """
 findcallee on otherwise
 """
-
 function findcallee(something::Otherwise)
   return []
 end
