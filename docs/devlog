@@ -1,4 +1,4 @@
-20191214(日)
+20191214(土)
 
 parsecaller()で、macroも識別するようにした。
 　return valueを([:f,;m], calltype)とした
