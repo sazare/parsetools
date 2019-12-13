@@ -26,7 +26,7 @@ global IGNORENAMES=vcat(JULIANAMES, PRIVATENAMES)
 # QuoteNode maybe in comment
 # Number in as x = 2. :(=)'s second but not Expr
 
-Otherwise = Union{Char,Symbol,String,LineNumberNode,GlobalRef,QuoteNode,Number}
+Otherwise = Union{Char,Symbol,String,LineNumberNode,GlobalRef,QuoteNode,Number,Nothing}
 
 #### 1. parse files
 
@@ -93,7 +93,7 @@ macro arrayfunc(name)
   :(function $name(ae::Array)
     somes = []
     for e in ae
-      append!(somes, $name(e))
+      !(e isa Nothing) && append!(somes, $name(e))
     end
     return somes
   end)
@@ -109,10 +109,6 @@ function findcaller(ae::Array)
 end
 ==#
 
-function findcaller(something::Otherwise)
-  return []
-end
-
 # problem
 # f = g and g is a function
 # z = something z is a variable
@@ -125,9 +121,12 @@ function findcaller(expr::Expr)
     if expr.args[1] isa Expr
       return [expr.args[1]]
     end
-  else
-    return []
   end
+  return []
+end
+
+function findcaller(something::Otherwise)
+  return []
 end
 
 ### collect caller->callee
