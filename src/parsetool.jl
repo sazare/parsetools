@@ -1,15 +1,15 @@
 # tools for parse julia files
 
-### RESTRICTION 
+### Usage
 #==
-1. function definition in function definition. in this case
-   find just inside funtion name.
-2. f=g and g is a function. I don't follow g's def as f's def.
-3. i don't follow macro definition as this file.
-==#
+1) include("parsetool.jl") or using FuncTree
+2) w=parsefile(file) or ww=parsefiles(filename's vector)
+2.5) showtypes(w) show the type of first element of every lines
+3) findcaller(w)  function/macro definitions
+4) findcallee(w)  function call function
+5) fullparse(w)   numbering findcallee()
 
-### between document string and function should have a blank line
-### or, the comment and 1st line in a single token
+==#
 
 global JULIANAMES=[:GlobalRef, :(Meta.parse), :(core.@doc), :macrocall,
 :if, :for, :while, :global, :block, :&&, :||,
@@ -19,15 +19,19 @@ global JULIANAMES=[:GlobalRef, :(Meta.parse), :(core.@doc), :macrocall,
 :(=),:(==), :(!=), :(>=), :(<=), :(<), :(>), :(:)
 ]
 
-global PRIVATENAMES = []
-global IGNORENAMES=vcat(JULIANAMES, PRIVATENAMES)
+global PRIVATENAMES = []               # customize the ignored function names
+# really ignore these names in findcallee()
+global IGNORENAMES=vcat(JULIANAMES, PRIVATENAMES) 
+
+
+# I don't use Otherwise. Any is enough in method definition.
+# But I remain this for memory.
 
 # GlobalRef in toplevel of a file
 # LineNumberNode in Meta.parse()
 # QuoteNode maybe in comment
 # Number in as x = 2. :(=)'s second but not Expr
-
-Otherwise = Union{Char,Symbol,String,LineNumberNode,GlobalRef,QuoteNode,Number,Nothing}
+# Otherwise = Union{Char,Symbol,String,LineNumberNode,GlobalRef,QuoteNode,Number,Nothing}
 
 #### 1. parse files
 
@@ -83,8 +87,7 @@ function showtypes(es)
 end
 
 
-##### collect callee
-
+##### Array cases are all same
 """
 finding function definitions from Array of something
 """
@@ -98,15 +101,11 @@ macro arrayfunc(name)
   end)
 end
 
-@arrayfunc(findcaller)
+"""
+findcaller array case
+"""
 
-#==
-function findcaller(ae::Array)
-  callers=[]
-  map(e->append!(callers,findcaller(e)),ae)
-  return callers
-end
-==#
+@arrayfunc(findcaller)
 
 # problem
 # f = g and g is a function
@@ -128,7 +127,7 @@ function findcaller(expr::Expr)
   return []
 end
 
-function findcaller(something::Otherwise)
+function findcaller(something::Any)
   return []
 end
 
@@ -138,22 +137,9 @@ findcalee return a Array of called functions from a expr
 now, ignore macrocall
 """
 
-# finding callee
-
 @arrayfunc(findcalleetop)
 
-#==
-function findcalleetop(ae::Array)
-  callees=[]
-  for e in ae
-    append!(callees,findcalleetop(e))
-#    e isa Expr && append!(callees,findcalleetop(e))
-  end
-  return callees
-end
-==#
-
-function findcalleetop(something::Otherwise)
+function findcalleetop(something::Any)
   return []
 end
 
@@ -199,7 +185,7 @@ end
 """
 findcallee on otherwise
 """
-function findcallee(something::Otherwise)
+function findcallee(something::Any)
   return []
 end
 
@@ -209,21 +195,6 @@ findcallee find callee in array of something
 
 @arrayfunc(findcallee)
 
-#==
-function findcallee(ae::Array)
-  callees=[]
-  for e in ae
-    append!(callees, findcallee(e))
-  end
-  return callees
-end
-==#
-
-### error fall function
-###### BUG: this function behaves unclear
-function findcallee(x)
-  []
-end
 
 ### for multi julia files
 function fullparse(exprs)
