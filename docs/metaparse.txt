@@ -1,0 +1,87 @@
+Meta.parse()を使って、juliaファイルから関数呼出しグラフを取り出す
+そのグラフに対するqueryができるようになれば面白いかも。
+
+1. ファイルの読み込みと、parse()
+2. 関数定義の取り出し
+3. 定義と呼ばれる関数の関係の取り出し
+
+
+
+* 基本的なmethodの構造
+　ファイル全体を文字列として読み込みMeta.parse()をかけると
+何かのArray{Any,1}になる。
+
+　Meta.parse()の結果には、Expr以外に単なるString(コメントだけの行)もはいってくる。
+それは showtypes()でみるとfalseになっている行。
+
+　REPLで"f(x,g(y))"などをMeta.parse()するとExprだけがかえってくるが
+ファイルから読み込んだstringをMeta.parse()すると、Stringも混在する。
+
+
+　Exprのheadにはjulia言語をparseしたときの構文要素がはいってくる。
+
+　:callについてはマニュアルに書いてあったと思うが、それ以外にも
+　代入文は:(=) つまり Symbol("=") がheadになるし、
+function定義だと headは:functionになる。
+
+　ちなみに、w=Meta.parse(...)し、REPLで
+julia> w
+　とした場合と、w.head, w.argsで見た場合、あるいはdump(w)した
+場合、それぞれ表現が違うので確かめながら見ていく必要がある。
+　単に w<enter>でみると、一番シンブルな表示になるのだろう。
+
+　
+　dump()でみると Exprでなく、LineNumberNodeというものがargsに含まれるようになる。
+これはExprではないのでheadを持たない。ファイルの何行目なのかを示すような情報。
+  REPLでみると
+
+---------------
+julia> pt[4].args[2].args[1]
+:(#= none:15 =#)
+---------------
+
+というような表示になる。
+
+?でみると
+
+---------------
+help?> LineNumberNode
+search: LineNumberNode
+
+  No documentation found.
+
+  Summary
+  ≡≡≡≡≡≡≡≡≡
+
+  struct LineNumberNode <: Any
+
+  Fields
+  ≡≡≡≡≡≡≡≡
+
+  line :: Int64
+  file :: Any
+---------------
+
+
+* 関数定義の呼び出される関数を再帰的に処理するときの制御
+
+　Exprの構造を再起的に見ていき、:callがあったら、関数呼出しだと判定して
+args[1]を関数名として取り出す、というのが基本的な制御。
+
+　そのとき、Exprからargs::Arrayにいき、そこからまたExprに戻ってくるので
+次の3種類の引数の型を持つmethodを定義すればよい。
+
+ 1) Expr
+ 2) Array
+ 3) otherwise
+
+Otherwiseの引数の型はAnyでよい。
+ここには、LineNumberNodeやStringのようなものがヒットする。
+
+
+*
+
+
+
+
+
