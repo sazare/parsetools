@@ -15,6 +15,7 @@ global JULIANAMES=[:GlobalRef, :(Meta.parse), :(core.@doc), :macrocall,
 :if, :for, :while, :global, :block, :&&, :||,
 :append!, :push!, :map, :isa, :println,:in,:all,
 :length, :print, :println,
+:comprehension, :generator,
 :+, :-, :*, :/, :!,
 :(=),:(==), :(!=), :(>=), :(<=), :(<), :(>), :(:)
 ]
